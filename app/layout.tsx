@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThirdwebProvider } from "thirdweb/react"; // <-- EKLENDİ
+import { ThirdwebProvider } from "thirdweb/react"; // <--- İŞTE BU EKSİKTİ
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Gambmon | Predict the Future",
-  description: "Next Gen Prediction Market",
+  title: "Gambmon | Web3 Betting",
+  description: "Decentralized betting on Polygon",
 };
 
 export default function RootLayout({
@@ -17,8 +17,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-background text-white min-h-screen antialiased selection:bg-neon-blue selection:text-black`}>
-        {/* BURASI SARMALANDI */}
+      <body className={inter.className}>
+        {/* Tüm siteyi ThirdwebProvider içine alıyoruz */}
         <ThirdwebProvider>
           {children}
         </ThirdwebProvider>
