@@ -11,9 +11,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={inter.className}>
         <ThirdwebWrapper>
-          <Navbar /> {/* Bu hayalet navbar, görünmez */}
-          {children} {/* Senin orijinal tasarımın burada */}
-        </ThirdwebWrapper>
+  <Navbar /> {/* Navbar burada olmalı */}
+  <main className="pt-20">
+    {children}
+  </main>
+</ThirdwebWrapper>
       </body>
     </html>
   );
