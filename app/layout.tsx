@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import ThirdwebWrapper from "@/components/ThirdwebWrapper";
-import { Navbar } from "@/components/shared/Navbar";
+import ThirdwebWrapper from "@/components/ThirdwebWrapper"; // Bu kalsın, hata vermemesi için şart
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,19 +17,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-black text-white antialiased`}>
-        {/* Bütün siteyi Thirdweb özelliklerine eriştiren sarmalayıcı */}
+      <body className={inter.className}>
         <ThirdwebWrapper>
+          {/* Buradaki <Navbar /> satırını sildik! */}
           
-          {/* Yeni oluşturduğun modern Navbar bileşeni */}
-          <Navbar />
-          
-          {/* Sayfa içeriği (children). 
-              pt-20 (Padding Top) ekledik ki içerik fixed Navbar'ın altında kalmasın.
-          */}
-          <main className="pt-20 min-h-screen">
-            {children}
-          </main>
+          {/* Sadece children kalsın, böylece senin orijinal sayfan görünür */}
+          {children}
           
         </ThirdwebWrapper>
       </body>
