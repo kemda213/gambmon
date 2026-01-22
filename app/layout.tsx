@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThirdwebProvider } from "thirdweb/react"; // <--- İŞTE BU EKSİKTİ
+import ThirdwebWrapper from "@/components/ThirdwebWrapper"; // YENİ: Buradan çekiyoruz
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,10 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {/* Tüm siteyi ThirdwebProvider içine alıyoruz */}
-        <ThirdwebProvider>
+        {/* Artık direkt Provider değil, Wrapper kullanıyoruz */}
+        <ThirdwebWrapper>
           {children}
-        </ThirdwebProvider>
+        </ThirdwebWrapper>
       </body>
     </html>
   );
