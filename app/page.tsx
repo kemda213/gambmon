@@ -41,6 +41,12 @@ export default function Home() {
           <MarketItem marketId={0} />
           <MarketItem marketId={1} />
           <MarketItem marketId={2} />
+          <MarketItem marketId={3} />
+          <MarketItem marketId={4} />
+          <MarketItem marketId={5} />
+          <MarketItem marketId={6} />
+          <MarketItem marketId={7} />
+          <MarketItem marketId={8} />
         </div>
 
         {/* Eğer hiç maç yoksa diye bilgilendirme */}
