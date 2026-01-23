@@ -1,160 +1,68 @@
 "use client";
-import { useState } from "react";
-import { GlassCard } from "@/components/shared/GlassCard";
-import { Bookmark, TrendingUp, Loader2, AlertCircle, Trophy, Wallet } from "lucide-react";
-import { useReadContract } from "thirdweb/react";
-import { prepareContractCall } from "thirdweb";
-import { useSendTransaction } from "thirdweb/react"; 
-import { contract } from "@/lib/contract";
-import { toEther } from "thirdweb/utils";
-import { cn } from "@/lib/utils";
-import { BetModal } from "./BetModal";
 
+import { useState } from "react";
+// Eğer daha önce oluşturduğumuz BetModal veya BetButton varsa buraya import edebilirsin.
+// Şimdilik sadece tasarımı ve veri akışını düzeltiyoruz.
+
+// --- İŞTE HATAYI ÇÖZEN KISIM BURASI ---
+// Gelen verilerin tipini (interface) tanımlıyoruz.
 interface RealMarketCardProps {
-  id: number;
+  id: string;
+  teamA: string;
+  teamB: string;
+  endTime: number;
 }
 
-export const RealMarketCard = ({ id }: RealMarketCardProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const { mutate: sendTx, isPending: isClaiming } = useSendTransaction();
-
-  const { data: market, isLoading, error } = useReadContract({
-    contract,
-    // Solidity'den dönen veri sırası: [id, question, endTime, poolA, poolB, resolved, outcome]
-    method: "function markets(uint256) view returns (uint256 id, string question, uint256 endTime, uint256 totalOptionA, uint256 totalOptionB, bool resolved, uint256 outcome)",
-    params: [BigInt(id)],
-  });
-
-  // --- DÜZELTME BURADA YAPILDI ---
-  const handleClaim = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Kartın kendisine tıklanmasını engelle
-    console.log("Claim butonuna basıldı.");
-
-    // HATA DÜZELTİLDİ: market.resolved yerine market[5] kullanıyoruz
-    const isResolved = market?.[5]; 
-
-    if (!isResolved) {
-      alert("Bu piyasa henüz sonuçlanmamış veya veri yüklenemedi.");
-      return;
-    }
-
-    try {
-      const transaction = prepareContractCall({
-        contract,
-        method: "function claimWinnings(uint256 _marketId)",
-        params: [BigInt(id)],
-      });
-      console.log("İşlem gönderiliyor...");
-      sendTx(transaction);
-    } catch (err) {
-      console.error("Hata:", err);
-      alert("Bir hata oluştu.");
-    }
-  };
-
-  if (isLoading) return <GlassCard className="h-[220px] flex items-center justify-center"><Loader2 className="animate-spin text-neon-blue" /></GlassCard>;
-  if (error || !market) return null;
-
-  // Verileri Diziden Okuma (Array Indexing)
-  const poolA = Number(toEther(market[3]));
-  const poolB = Number(toEther(market[4]));
-  const totalVolume = poolA + poolB;
-  const isResolved = market[5]; // resolved (Boolean)
-  const outcome = Number(market[6]); // 1=A, 2=B
-
-  let chanceA = 50;
-  if (totalVolume > 0) chanceA = Math.round((poolA / totalVolume) * 100);
-
-  const handleCardClick = () => {
-    if (!isResolved) {
-      setIsModalOpen(true);
-    }
-  };
-
+export const RealMarketCard = ({ id, teamA, teamB, endTime }: RealMarketCardProps) => {
   return (
-    <>
-      <GlassCard 
-        hoverEffect={!isResolved}
-        onClick={handleCardClick}
-        className={cn(
-          "p-0 h-[220px] flex flex-col justify-between group relative overflow-hidden",
-          !isResolved ? "cursor-pointer" : "cursor-default border-neon-blue/30"
-        )}
-      >
-        <div className={cn(
-          "absolute top-0 right-0 w-32 h-32 blur-[60px] rounded-full pointer-events-none opacity-20",
-          isResolved 
-            ? "bg-neon-blue" 
-            : (chanceA > 50 ? "bg-neon-green" : "bg-neon-red")
-        )} />
+    <div className="group relative overflow-hidden rounded-2xl bg-[#0a0a0a] border border-white/10 p-6 hover:border-[#00f3ff]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,243,255,0.1)]">
+      
+      {/* Arkaplan Efekti */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#00f3ff]/5 rounded-full blur-3xl -z-10 group-hover:bg-[#00f3ff]/10 transition-all"></div>
 
-        <div className="p-5 relative z-10">
-          <div className="flex justify-between items-start gap-4">
-            <div className="flex gap-3">
-               <div className={cn(
-                 "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border",
-                 isResolved 
-                  ? "bg-neon-blue/10 border-neon-blue text-neon-blue" 
-                  : "bg-white/5 border-white/10 text-neon-purple"
-               )}>
-                 {isResolved ? <Trophy size={20} /> : <TrendingUp size={20} />}
-               </div>
-               <h3 className="text-lg font-medium leading-snug text-white/90 line-clamp-3">
-                  {market[1]}
-               </h3>
-            </div>
-            {/* Bookmark butonu şimdilik sadece görsel */}
-            <button className="text-gray-500 hover:text-white transition-colors">
-              <Bookmark size={20} />
-            </button>
+      {/* Üst Bilgi: ID ve Tarih */}
+      <div className="flex justify-between items-center mb-6 opacity-60">
+        <span className="text-xs font-mono text-zinc-400">MATCH #{id}</span>
+        <div className="flex items-center gap-2 text-xs bg-white/5 px-2 py-1 rounded text-zinc-300">
+          <span>⏰</span>
+          {/* Zamanı okunabilir tarihe çeviriyoruz */}
+          {new Date(endTime * 1000).toLocaleDateString("tr-TR", {
+            day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+          })}
+        </div>
+      </div>
+
+      {/* Takımlar ve VS */}
+      <div className="flex justify-between items-center mb-8 relative z-10">
+        {/* Takım A */}
+        <div className="text-center w-1/3 group/team">
+          <div className="w-14 h-14 mx-auto bg-gradient-to-br from-blue-600/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-3 border border-blue-500/30 group-hover/team:border-blue-500 transition-all">
+            <span className="text-2xl">🏠</span>
           </div>
+          <h3 className="font-bold text-white text-lg truncate tracking-tight">{teamA}</h3>
+          <p className="text-xs text-blue-400 mt-1">Ev Sahibi</p>
         </div>
 
-        <div className="p-5 pt-2 border-t border-glass-border bg-black/20 relative z-10">
-          {isResolved ? (
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-xs text-gray-400 uppercase">WINNER</span>
-                <span className="text-lg font-bold text-neon-blue">
-                  {outcome === 1 ? "OPTION A" : "OPTION B"}
-                </span>
-              </div>
-              
-              <button 
-                onClick={handleClaim} // Düzeltilmiş fonksiyon burada çağrılıyor
-                disabled={isClaiming}
-                className="flex items-center gap-2 bg-neon-green text-black px-4 py-2 rounded-lg font-bold hover:bg-neon-green/80 transition-all disabled:opacity-50 cursor-pointer z-50"
-              >
-                {isClaiming ? <Loader2 size={16} className="animate-spin"/> : <Wallet size={18} />}
-                CLAIM
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                  <span className="text-xs text-gray-500 uppercase tracking-wider">Total Volume</span>
-                  <span className="text-sm font-mono text-gray-300">
-                      {totalVolume.toFixed(2)} POL
-                  </span>
-              </div>
-              <div className="text-right">
-                   <div className={cn("text-xl font-bold", chanceA > 50 ? "text-neon-green" : "text-neon-red")}>
-                       %{chanceA}
-                   </div>
-                   <span className="text-xs text-gray-500">Option A Chance</span>
-              </div>
-            </div>
-          )}
+        {/* VS Logosu */}
+        <div className="flex flex-col items-center justify-center">
+          <span className="text-4xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-700 opacity-20">VS</span>
         </div>
-      </GlassCard>
 
-      <BetModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        marketId={id}
-        question={market?.[1] || ""}
-      />
-    </>
+        {/* Takım B */}
+        <div className="text-center w-1/3 group/team">
+          <div className="w-14 h-14 mx-auto bg-gradient-to-br from-purple-600/20 to-pink-500/20 rounded-2xl flex items-center justify-center mb-3 border border-purple-500/30 group-hover/team:border-purple-500 transition-all">
+            <span className="text-2xl">✈️</span>
+          </div>
+          <h3 className="font-bold text-white text-lg truncate tracking-tight">{teamB}</h3>
+          <p className="text-xs text-purple-400 mt-1">Deplasman</p>
+        </div>
+      </div>
+
+      {/* Bahis Butonu (Şimdilik sadece görsel, sonra işlev ekleriz) */}
+      <button className="w-full py-3.5 bg-white text-black font-black text-sm uppercase tracking-wider rounded-xl hover:bg-[#00f3ff] transition-colors duration-200">
+        Bahis Yap
+      </button>
+
+    </div>
   );
 };
