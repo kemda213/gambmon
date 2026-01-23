@@ -10,7 +10,7 @@ export default function Home() {
   const { data: market, isLoading } = useReadContract({
     contract,
     method: "function markets(uint256) view returns (uint256 id, string question, uint256 endTime, uint256 totalOptionA, uint256 totalOptionB, bool resolved, uint256 outcome)",
-    params: [BigInt(0)] // 0. indexteki maçı çekiyoruz
+    params: [BigInt(1)] // 0. indexteki maçı çekiyoruz
   });
 
   return (
