@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { TransactionButton, useReadContract, useActiveAccount } from "thirdweb/react";
-import { prepareContractCall, toWei } from "thirdweb"; // toWei EKLENDİ
+import { prepareContractCall } from "thirdweb";
 import { contract } from "@/lib/contract";
 
 export default function AdminMarketCreator() {
   const [question, setQuestion] = useState("Fenerbahce vs Besiktas");
   const account = useActiveAccount();
 
-  // Owner kontrolü
+  // Owner kontrolü (Yetkili mi?)
   const { data: ownerAddress } = useReadContract({
     contract,
     method: "function owner() view returns (address)", 
@@ -40,32 +40,26 @@ export default function AdminMarketCreator() {
 
           <TransactionButton
             transaction={() => {
-              // DÜZELTME 1: Tarihi çok uzak yapmıyoruz (2 Gün Sonrası)
-              // Bazen kontratlarda "Maksimum 30 gün" gibi sınırlar olur.
-              const deadline = BigInt(Math.floor(Date.now() / 1000) + 172800); 
-
-              // DÜZELTME 2: Sahte ama geçerli bir resim URL'si veriyoruz
-              const dummyImage = "https://placehold.co/600x400/png";
+              // DÜZELTME: Sadece Soru ve Süre gönderiyoruz.
+              // 604800 saniye = 7 Gün demek. (Saniye cinsinden süre)
+              const duration = BigInt(604800); 
 
               return prepareContractCall({
                 contract,
-                // DÜZELTME 3: 'payable' ekledik
-                method: "function createMarket(string _question, string _image, uint256 _deadline) payable",
-                params: [question, dummyImage, deadline],
-                
-                // DÜZELTME 4: 0.05 POL gönderiyoruz (Belki ücret istiyordur)
-                // Merak etme, eğer ücret istemiyorsa bu para cüzdanında kalır veya geri döner.
-                value: toWei("0.05"), 
+                // Resim (_image) parametresini sildik! Sadece question ve duration kaldı.
+                method: "function createMarket(string _question, uint256 _duration)",
+                params: [question, duration]
               });
             }}
             onTransactionConfirmed={() => {
-              alert("✅ MAÇ NİHAYET OLUŞTURULDU! 🚀");
+              alert("✅ MAÇ OLUŞTURULDU! Eline sağlık 🚀");
+              // Sayfayı yenilemeye gerek yok, ama garanti olsun diye yeniliyoruz
               window.location.reload();
             }}
             onError={(err) => alert("Hata: " + err.message)}
             className="!bg-green-600 !text-white !font-bold !w-full !py-4 !rounded-xl"
           >
-            MAÇI OLUŞTUR (0.05 POL İle Dene)
+            MAÇI OLUŞTUR (7 Günlük)
           </TransactionButton>
         </div>
       ) : (
