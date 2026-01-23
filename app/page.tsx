@@ -5,11 +5,12 @@ import { contract } from "@/lib/contract";
 import { RealMarketCard } from "@/components/market/RealMarketCard";
 
 export default function Home() {
-  // 1. Verileri Çekiyoruz
-  const { data: matches, isLoading } = useReadContract({
+  // 1. KONTRAKTAN VERİ ÇEKME (ID: 0)
+  // Senin verdiğin çıktıya göre fonksiyon imzasını birebir güncelledim.
+  const { data: market, isLoading } = useReadContract({
     contract,
-    method: "function getAllBets() view returns ((string teamA, string teamB, uint256 endTime, uint256 id)[])", 
-    params: []
+    method: "function markets(uint256) view returns (uint256 id, string question, uint256 endTime, uint256 totalOptionA, uint256 totalOptionB, bool resolved, uint256 outcome)",
+    params: [BigInt(0)] // 0. indexteki maçı çekiyoruz
   });
 
   return (
@@ -20,35 +21,34 @@ export default function Home() {
           Canlı <span className="text-[#00f3ff]">Bahisler</span>
         </h1>
 
-        {/* Yükleniyor Animasyonu */}
+        {/* Yükleniyor... */}
         {isLoading && (
-          <div className="text-center py-20">
-            <div className="animate-spin w-10 h-10 border-4 border-[#00f3ff] border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-gray-400">Bahisler Yükleniyor...</p>
+          <div className="text-center py-20 text-[#00f3ff] animate-pulse">
+            Veriler Blokzincirinden Okunuyor...
           </div>
         )}
 
-        {/* Liste */}
+        {/* Kartı Göster */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* TypeScript hatasını engellemek için (matches as any[]) kullanıyoruz */}
-          {matches && (matches as any[]).length > 0 ? (
-            
-            // BURASI ÇÖZÜM: (match: any) diyerek kızmasını engelliyoruz
-            (matches as any[]).map((match: any, index: number) => (
-              <RealMarketCard
-                key={index}
-                // ID ve Zaman verilerini çeviriyoruz (BigInt sorunu olmasın diye)
-                id={match.id?.toString() || index.toString()} 
-                teamA={match.teamA}
-                teamB={match.teamB}
-                endTime={Number(match.endTime)} 
-              />
-            ))
+          {market ? (
+            <RealMarketCard
+              // ID'yi alıyoruz
+              id={market[0]?.toString()} 
+              
+              // Senin kontratında 'Takım A' yok, 'Soru' var. 
+              // O yüzden TeamA yerine soruyu yazıyoruz.
+              teamA={market[1]} 
+              
+              // TeamB yerine bilgilendirme yazıyoruz
+              teamB={market[5] ? "SONUÇLANDI" : "Devam Ediyor"} 
+              
+              // Bitiş zamanı
+              endTime={Number(market[2])} 
+            />
           ) : (
             !isLoading && (
-              <div className="col-span-3 text-center py-10 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-gray-400 text-lg">Şu an aktif bahis bulunmuyor.</p>
-                <p className="text-gray-600 text-sm mt-2">Admin panelinden maç eklenmesi bekleniyor.</p>
+              <div className="col-span-3 text-center text-gray-500">
+                0 Numaralı bahis bulunamadı.
               </div>
             )
           )}

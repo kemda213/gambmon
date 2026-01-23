@@ -39,7 +39,7 @@ export const RealMarketCard = ({ id, teamA, teamB, endTime }: RealMarketCardProp
           <div className="w-14 h-14 mx-auto bg-gradient-to-br from-blue-600/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-3 border border-blue-500/30 group-hover/team:border-blue-500 transition-all">
             <span className="text-2xl">🏠</span>
           </div>
-          <h3 className="font-bold text-white text-lg truncate tracking-tight">{teamA}</h3>
+          <h3 className="font-bold text-white text-lg tracking-tight leading-tight">{teamA}</h3>
           <p className="text-xs text-blue-400 mt-1">Ev Sahibi</p>
         </div>
 
