@@ -1,135 +1,46 @@
 "use client";
-import { useState } from "react";
-import { prepareContractCall } from "thirdweb";
-import { TransactionButton } from "thirdweb/react";
-import { contract } from "@/lib/contract";
-import { Header } from "@/components/layout/Header";
+
+import AdminMarketCreator from "@/components/AdminMarketCreator";
 
 export default function AdminPage() {
-  // Market Oluşturma State'leri
-  const [question, setQuestion] = useState("");
-  const [hours, setHours] = useState("");
-
-  // Sonuçlandırma (Resolve) State'leri
-  const [resolveId, setResolveId] = useState("");
-  const [outcome, setOutcome] = useState<number | null>(null); // 1 = A, 2 = B
-
   return (
-    <div className="min-h-screen bg-background text-white pb-20">
-      <Header />
-      <div className="container mx-auto px-4 pt-32 flex flex-col items-center gap-8">
+    <main className="min-h-screen bg-black pb-20 pt-24">
+      <div className="container mx-auto px-4 max-w-4xl">
         
-        {/* --- BÖLÜM 1: YENİ MARKET OLUŞTUR --- */}
-        <div className="w-full max-w-md p-8 bg-glass-100 border border-glass-border rounded-2xl backdrop-blur-xl">
-          <h1 className="text-2xl font-bold mb-6 text-neon-blue">Create New Market</h1>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Question</label>
-              <input 
-                type="text" 
-                placeholder="Ex: Will BTC hit 100k?"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                className="w-full bg-black/50 border border-glass-border rounded-lg p-3 focus:border-neon-blue outline-none transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Duration (Hours)</label>
-              <input 
-                type="number" 
-                placeholder="24"
-                value={hours}
-                onChange={(e) => setHours(e.target.value)}
-                className="w-full bg-black/50 border border-glass-border rounded-lg p-3 focus:border-neon-blue outline-none transition-colors"
-              />
-            </div>
-            <div className="pt-4">
-              <TransactionButton
-                transaction={() => {
-                  if (!question || !hours) throw new Error("Alanları doldurun!");
-                  const hoursInt = parseInt(hours);
-                  if (isNaN(hoursInt) || hoursInt <= 0) throw new Error("Geçerli saat girin");
+        {/* Başlık ve Uyarı Alanı */}
+        <div className="mb-10 text-center">
+          <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-4">
+            Yönetici <span className="text-red-600">Paneli</span>
+          </h1>
+          
+          <p className="text-gray-400 text-lg">
+            Buradan yeni bahisler oluşturabilir ve sistemi yönetebilirsin.
+          </p>
 
-                  return prepareContractCall({
-                    contract,
-                    method: "function createMarket(string _question, uint256 _duration)",
-                    params: [question, BigInt(hoursInt * 3600)],
-                  });
-                }}
-                onTransactionConfirmed={() => {
-                  alert("Market Created! 🚀");
-                  setQuestion("");
-                  setHours("");
-                }}
-                theme={"dark"}
-                className="w-full !bg-neon-blue !text-black font-bold"
-              >
-                Create Market
-              </TransactionButton>
-            </div>
+          <div className="mt-6 inline-flex items-center gap-2 bg-red-950/30 border border-red-500/30 px-6 py-3 rounded-full">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </span>
+            <span className="text-red-400 text-sm font-mono font-bold">
+              YETKİLİ CÜZDAN GEREKLİDİR
+            </span>
           </div>
         </div>
 
-        {/* --- BÖLÜM 2: MARKETİ SONUÇLANDIR (RESOLVE) --- */}
-        <div className="w-full max-w-md p-8 bg-glass-100 border border-neon-red/30 rounded-2xl backdrop-blur-xl">
-          <h1 className="text-2xl font-bold mb-6 text-neon-red">Resolve Market</h1>
-          <div className="space-y-4">
-            
-            {/* Market ID Girişi */}
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Market ID</label>
-              <input 
-                type="number" 
-                placeholder="0"
-                value={resolveId}
-                onChange={(e) => setResolveId(e.target.value)}
-                className="w-full bg-black/50 border border-glass-border rounded-lg p-3 focus:border-neon-red outline-none transition-colors"
-              />
-            </div>
+        {/* --- MAÇ OLUŞTURMA ARACI --- */}
+        {/* Az önce oluşturduğumuz bileşeni buraya çağırıyoruz */}
+        <div className="bg-[#111] border border-white/10 p-1 rounded-3xl shadow-2xl shadow-red-900/10">
+          <AdminMarketCreator />
+        </div>
 
-            {/* Kazananı Seç */}
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={() => setOutcome(1)}
-                className={`p-3 rounded-lg border font-bold transition-all ${outcome === 1 ? "bg-neon-green text-black border-neon-green" : "border-gray-700 text-gray-400 hover:bg-white/5"}`}
-              >
-                Option A Wins
-              </button>
-              <button
-                onClick={() => setOutcome(2)}
-                className={`p-3 rounded-lg border font-bold transition-all ${outcome === 2 ? "bg-neon-green text-black border-neon-green" : "border-gray-700 text-gray-400 hover:bg-white/5"}`}
-              >
-                Option B Wins
-              </button>
-            </div>
-
-            {/* Resolve Butonu */}
-            <div className="pt-4">
-              <TransactionButton
-                transaction={() => {
-                  if (!resolveId || !outcome) throw new Error("ID ve Sonuç seçilmedi!");
-                  
-                  return prepareContractCall({
-                    contract,
-                    method: "function resolveMarket(uint256 _marketId, uint256 _outcome)",
-                    params: [BigInt(resolveId), BigInt(outcome)],
-                  });
-                }}
-                onTransactionConfirmed={() => {
-                  alert(`Market ${resolveId} Resulted! Winner: Option ${outcome === 1 ? 'A' : 'B'}`);
-                  setResolveId("");
-                  setOutcome(null);
-                }}
-                theme={"dark"}
-                className="w-full !bg-neon-red !text-white font-bold"
-              >
-                Finalize Market
-              </TransactionButton>
-            </div>
-          </div>
+        {/* Bilgilendirme */}
+        <div className="mt-8 text-center text-gray-600 text-sm">
+          <p>Not: Oluşturulan maçlar blokzincirine yazılır ve silinemez.</p>
+          <p>Maçın bitiş süresi otomatik olarak 2026 sonuna ayarlanır.</p>
         </div>
 
       </div>
-    </div>
+    </main>
   );
 }
