@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { TransactionButton } from "thirdweb/react";
 import { prepareContractCall, toWei } from "thirdweb";
-import { contract } from "@/lib/contract"; // Kontratını buradan alıyoruz
+import { contract } from "@/lib/contract";
 
 interface RealMarketCardProps {
   id: string;
@@ -13,14 +13,13 @@ interface RealMarketCardProps {
 }
 
 export const RealMarketCard = ({ id, teamA, teamB, endTime }: RealMarketCardProps) => {
-  // Kullanıcının gireceği bahis miktarını tutan değişken
   const [betAmount, setBetAmount] = useState<string>("");
 
   return (
     <div className="group relative overflow-hidden rounded-2xl bg-[#0a0a0a] border border-white/10 p-6 hover:border-[#00f3ff]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,243,255,0.1)]">
       
       {/* Arkaplan Efekti */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-[#00f3ff]/5 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#00f3ff]/5 rounded-full blur-3xl -z-10 group-hover:bg-[#00f3ff]/10 transition-all"></div>
 
       {/* Üst Bilgi */}
       <div className="flex justify-between items-center mb-6 opacity-60">
@@ -33,11 +32,11 @@ export const RealMarketCard = ({ id, teamA, teamB, endTime }: RealMarketCardProp
 
       {/* Soru / Takımlar */}
       <div className="text-center mb-6">
-        <h3 className="font-bold text-white text-xl leading-tight mb-2">{teamA}</h3>
-        <p className="text-xs text-gray-500">Bahis Seçenekleri:</p>
+        <h3 className="font-bold text-white text-xl leading-tight mb-2 tracking-tight">{teamA}</h3>
+        <p className="text-xs text-gray-500">Tarafını Seç:</p>
       </div>
 
-      {/* --- BAHİS ALANI (Miktar Girişi) --- */}
+      {/* Miktar Girişi */}
       <div className="mb-4">
         <input
           type="number"
@@ -48,26 +47,28 @@ export const RealMarketCard = ({ id, teamA, teamB, endTime }: RealMarketCardProp
         />
       </div>
 
-      {/* --- BUTONLAR (A ve B Seçeneği) --- */}
+      {/* --- BUTONLAR (GÜNCELLENDİ) --- */}
       <div className="flex gap-3">
+        
         {/* EVET / TAKIM A BUTONU */}
         <TransactionButton
           transaction={() => {
             if (!betAmount) throw new Error("Lütfen miktar girin!");
             
-            // DİKKAT: Fonksiyon ismin 'placeBet' ise ve parametreleri (marketId, optionId) ise:
             return prepareContractCall({
               contract,
-              method: "function placeBet(uint256 _marketId, uint256 _outcomeId) payable",
-              params: [BigInt(id), BigInt(0)], // 0 = İlk Seçenek (Evet/Takım A)
-              value: toWei(betAmount), // Girilen miktar
+              // DÜZELTME: uint256 yerine bool istiyor
+              method: "function placeBet(uint256 _marketId, bool _optionA) payable",
+              // Params: [ID, TRUE] -> TRUE demek "Evet/OptionA" demek
+              params: [BigInt(id), true], 
+              value: toWei(betAmount),
             });
           }}
-          onTransactionConfirmed={() => alert("✅ Bahis Başarılı! (Seçenek A)")}
+          onTransactionConfirmed={() => alert("✅ Bahis Başarılı! (Taraf A)")}
           onError={(err) => alert("Hata: " + err.message)}
           className="!flex-1 !bg-green-600 !text-white !font-bold !py-3 !rounded-xl hover:!bg-green-500"
         >
-          EVET (Oyna)
+          EVET / A
         </TransactionButton>
 
         {/* HAYIR / TAKIM B BUTONU */}
@@ -77,16 +78,18 @@ export const RealMarketCard = ({ id, teamA, teamB, endTime }: RealMarketCardProp
 
             return prepareContractCall({
               contract,
-              method: "function placeBet(uint256 _marketId, uint256 _outcomeId) payable",
-              params: [BigInt(id), BigInt(1)], // 1 = İkinci Seçenek (Hayır/Takım B)
+              // DÜZELTME: uint256 yerine bool istiyor
+              method: "function placeBet(uint256 _marketId, bool _optionA) payable",
+              // Params: [ID, FALSE] -> FALSE demek "Hayır/OptionB" demek
+              params: [BigInt(id), false], 
               value: toWei(betAmount),
             });
           }}
-          onTransactionConfirmed={() => alert("✅ Bahis Başarılı! (Seçenek B)")}
+          onTransactionConfirmed={() => alert("✅ Bahis Başarılı! (Taraf B)")}
           onError={(err) => alert("Hata: " + err.message)}
           className="!flex-1 !bg-red-600 !text-white !font-bold !py-3 !rounded-xl hover:!bg-red-500"
         >
-          HAYIR (Oyna)
+          HAYIR / B
         </TransactionButton>
       </div>
 
